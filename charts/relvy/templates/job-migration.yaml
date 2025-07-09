@@ -1,0 +1,69 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "relvy.fullname" . }}-migration
+  labels:
+    {{- include "relvy.labels" . | nindent 4 }}
+    app.kubernetes.io/component: migration
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation
+spec:
+  template:
+    metadata:
+      labels:
+        {{- include "relvy.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: migration
+    spec:
+      {{- if .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml .Values.global.imagePullSecrets | nindent 8 }}
+      {{- end }}
+      restartPolicy: OnFailure
+      containers:
+      - name: migration
+        image: {{ include "relvy.image" . }}
+        imagePullPolicy: {{ .Values.web.image.pullPolicy }}
+        command: ["sh", "-c"]
+        args: ["flask --app=resolveml db upgrade"]
+        env:
+        - name: ENVIRONMENT
+          value: {{ .Values.config.environment | quote }}
+        - name: DATABASE_URI
+          value: {{ include "relvy.databaseUrl" . | quote }}
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.secrets.database }}
+              key: password
+        - name: POSTGRES_USER
+          value: {{ .Values.database.external.user | quote }}
+        - name: POSTGRES_DB
+          value: {{ .Values.database.external.name | quote }}
+        - name: POSTGRES_ENDPOINT
+          value: {{ .Values.database.external.endpoint | quote }}
+        - name: REDIS_URL
+          value: {{ include "relvy.redisUrl" . | quote }}
+        - name: PYTHONPATH
+          value: "/app"
+        - name: LLM_CLIENT
+          value: {{ .Values.config.llmClient | quote }}
+        - name: LLM_MODEL
+          value: {{ .Values.config.llmModel | quote }}
+        - name: HEAVY_LLM_CLIENT
+          value: {{ .Values.config.heavyLlmClient | quote }}
+        - name: HEAVY_LLM_MODEL
+          value: {{ .Values.config.heavyLlmModel | quote }}
+        - name: REASONING_LLM_CLIENT
+          value: {{ .Values.config.reasoningLlmClient | quote }}
+        - name: REASONING_LLM_MODEL
+          value: {{ .Values.config.reasoningLlmModel | quote }}
+        - name: SERVER_HOSTNAME
+          value: {{ .Values.config.serverHostname | quote }}
+        {{- if .Values.config.slack.enabled }}
+        - name: SLACK_CLIENT_ID
+          value: {{ .Values.config.slack.clientId | quote }}
+        - name: SLACK_CLIENT_SECRET
+          value: {{ .Values.config.slack.clientSecret | quote }}
+        {{- end }}

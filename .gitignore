@@ -1,0 +1,40 @@
+# Relvy Helm Charts - .gitignore
+
+# Sensitive configuration files
+.relvy-install-config
+values.yaml
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Helm generated files
+*.tgz
+charts/*.tgz
+
+# Backup files
+*.bak
+*.backup
+*.orig
+
+# Local test files
+test-values.yaml
+local-values.yaml
+my-values.yaml
+
+# Secrets and passwords
+*secret*
+*password*
+*credential*
