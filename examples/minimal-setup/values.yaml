@@ -1,0 +1,36 @@
+# Global configuration
+
+# Web application configuration
+web:
+  ingress:
+    annotations:
+      alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:xxx
+    hosts:
+      - host: subdomain.domain.com
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: relvy-tls
+        hosts:
+          - subdomain.domain.com
+
+# Celery worker configuration
+
+# Celery beat scheduler configuration
+
+# Redis configuration
+
+# Database Configuration
+database:
+  endpoint: "<your-db-endpoint>"
+  port: 5432
+  name: "relvydb"
+
+# Secrets configuration
+
+# Application Configuration
+config:
+  serverHostname: "https://subdomain.domain.com"
+
+# Persistence configuration

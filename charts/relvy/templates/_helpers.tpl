@@ -2,7 +2,7 @@
 Expand the name of the chart.
 */}}
 {{- define "relvy.name" -}}
-{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
+{{- .Chart.Name | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
@@ -11,15 +11,11 @@ We truncate at 63 chars because some Kubernetes name fields are limited to this 
 If release name contains chart name it will be used as a full name.
 */}}
 {{- define "relvy.fullname" -}}
-{{- if .Values.fullnameOverride }}
-{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
-{{- else }}
-{{- $name := default .Chart.Name .Values.nameOverride }}
+{{- $name := .Chart.Name }}
 {{- if contains $name .Release.Name }}
 {{- .Release.Name | trunc 63 | trimSuffix "-" }}
 {{- else }}
 {{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}
-{{- end }}
 {{- end }}
 {{- end }}
 
@@ -65,20 +61,9 @@ Create the name of the service account to use
 Get the image name
 */}}
 {{- define "relvy.image" -}}
-{{- $repositoryName := .Values.web.image.repository | default "relvy/relvy-app-onprem" -}}
-{{- $tag := .Values.global.imageTag | default .Values.web.image.tag | default "latest" | toString -}}
+{{- $repositoryName := .Values.global.imageName | default "relvy/relvy-app-onprem" -}}
+{{- $tag := .Values.global.imageTag | default "latest" | toString -}}
 {{- printf "%s:%s" $repositoryName $tag -}}
-{{- end }}
-
-{{/*
-Get the database connection string
-*/}}
-{{- define "relvy.databaseUrl" -}}
-{{- if .Values.database.external.enabled }}
-{{- printf "postgresql://%s:%s@%s:%v/%s" .Values.database.external.user .Values.database.external.password .Values.database.external.endpoint .Values.database.external.port .Values.database.external.name -}}
-{{- else }}
-{{- printf "postgresql://%s:%s@%s:%v/%s" .Values.database.internal.user .Values.database.internal.password (include "relvy.fullname" .) .Values.database.internal.port .Values.database.internal.name -}}
-{{- end }}
 {{- end }}
 
 {{/*
