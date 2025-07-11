@@ -9,8 +9,22 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Configuration file
-CONFIG_FILE=".relvy-install-config"
+# Parse command line arguments
+CONNECT_LANGFUSE=false
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --connect_langfuse)
+            CONNECT_LANGFUSE=true
+            shift
+            ;;
+        *)
+            echo "Unknown option: $1"
+            echo "Usage: $0 [--connect_langfuse]"
+            echo "  --connect_langfuse: Update existing Relvy installation with Langfuse integration"
+            exit 1
+            ;;
+    esac
+done
 
 # Function to print colored output
 print_status() {
@@ -48,46 +62,6 @@ validate_domain() {
 # Function to generate random string
 generate_random_string() {
     openssl rand -base64 32 | tr -d "=+/" | cut -c1-32
-}
-
-# Function to load saved configuration
-load_config() {
-    if [[ -f "$CONFIG_FILE" ]]; then
-        print_status "Loading saved configuration..."
-        source "$CONFIG_FILE"
-    else
-        print_status "No saved configuration found, proceeding with fresh setup."
-    fi
-    return 0
-}
-
-# Function to save configuration
-save_config() {
-    print_status "Saving configuration for future use..."
-    cat > "$CONFIG_FILE" << EOF
-# Relvy Installation Configuration
-# Generated on $(date)
-# This file contains your configuration for future installations
-
-# Database Configuration
-DB_ENDPOINT="$DB_ENDPOINT"
-DB_PORT="$DB_PORT"
-DB_NAME="$DB_NAME"
-DB_USER="$DB_USER"
-
-# Domain Configuration
-DOMAIN="$DOMAIN"
-CERT_ARN="$CERT_ARN"
-
-# Docker Registry Configuration
-DOCKER_REGISTRY="$DOCKER_REGISTRY"
-DOCKER_USERNAME="$DOCKER_USERNAME"
-
-# Slack Configuration
-SLACK_ENABLED="$SLACK_ENABLED"
-SLACK_CLIENT_ID="$SLACK_CLIENT_ID"
-EOF
-    print_success "Configuration saved to $CONFIG_FILE"
 }
 
 # Function to prompt with default value
@@ -146,6 +120,61 @@ echo
 print_status "This script will help you deploy Relvy on your Kubernetes cluster."
 echo
 
+#
+
+# If connect_langfuse is provided, handle it as a simple upgrade operation
+if [[ "$CONNECT_LANGFUSE" == "true" ]]; then
+    print_status "Langfuse connection mode - updating Relvy with Langfuse configuration..."
+    
+    # Check if Relvy is installed
+    if ! helm list | grep -q "relvy"; then
+        print_error "Relvy is not installed. Please install Relvy first before connecting Langfuse."
+        exit 1
+    fi
+    
+    # Load existing values.yaml if it exists
+    if [[ -f "my-values.yaml" ]]; then
+        print_status "Loading existing values.yaml..."
+    else
+        print_error "my-values.yaml not found. Please run the full installation first."
+        exit 1
+    fi
+    
+    # Prompt for Langfuse credentials
+    echo
+    print_status "Langfuse Configuration:"
+    prompt_with_default "Langfuse Public Key" "$LANGFUSE_PUBLIC_KEY" "LANGFUSE_PUBLIC_KEY"
+    read -s -p "Langfuse Secret Key: " LANGFUSE_SECRET_KEY
+    echo
+    prompt_with_default "Langfuse Host (optional, leave empty for default)" "$LANGFUSE_HOST" "LANGFUSE_HOST"
+    LANGFUSE_HOST=${LANGFUSE_HOST:-""}
+    
+    # Update values.yaml with Langfuse configuration
+    print_status "Creating langfuse secret..."
+    
+    kubectl create secret generic relvy-langfuse-secret \
+      --from-literal=public_key="${LANGFUSE_PUBLIC_KEY}" \
+      --from-literal=secret_key="${LANGFUSE_SECRET_KEY}"
+
+    
+    # Restart Relvy
+    print_status "Restarting Relvy to apply Langfuse configuration..."
+    
+    # Restart the web and celery deployments
+    kubectl rollout restart deployment/relvy-web
+    kubectl rollout restart deployment/relvy-celery
+    kubectl rollout restart deployment/relvy-celery-beat
+    
+    # Wait for deployments to be ready
+    print_status "Waiting for deployments to be ready..."
+    kubectl wait --for=condition=available deployment/relvy-web --timeout=300s
+    kubectl wait --for=condition=available deployment/relvy-celery --timeout=300s
+    
+    print_success "Relvy upgraded with Langfuse configuration"
+    echo
+    exit 0
+fi
+
 # Check if Relvy is already installed
 if helm list | grep -q "relvy"; then
     print_warning "Relvy is already installed. Do you want to upgrade it? (y/N)"
@@ -158,9 +187,6 @@ if helm list | grep -q "relvy"; then
 else
     UPGRADE_MODE=false
 fi
-
-# Load saved configuration
-load_config
 
 # Collect configuration
 echo
@@ -198,18 +224,6 @@ prompt_with_default "AWS Certificate Manager ARN (e.g., arn:aws:acm:us-east-1:12
 
 # Optional integrations
 echo
-print_status "Optional Integrations:"
-prompt_with_default "Enable Slack integration? (y/N)" "$SLACK_ENABLED" "SLACK_ENABLED"
-if [[ "$SLACK_ENABLED" =~ ^[Yy]$ ]]; then
-    prompt_with_default "Slack Client ID" "$SLACK_CLIENT_ID" "SLACK_CLIENT_ID"
-    read -s -p "Slack Client Secret: " SLACK_CLIENT_SECRET
-    echo
-    SLACK_ENABLED=true
-else
-    SLACK_ENABLED=false
-    SLACK_CLIENT_ID=""
-    SLACK_CLIENT_SECRET=""
-fi
 
 # Docker Registry Configuration
 echo
@@ -241,55 +255,19 @@ fi
 FLASK_SECRET_KEY=$(generate_random_string)
 
 # Create values.yaml
-print_status "Creating values.yaml..."
+print_status "Creating my-values.yaml..."
 
-cat > values.yaml << EOF
+cat > my-values.yaml << EOF
 # Relvy Configuration
 # Generated by install.sh on $(date)
 
 # Global configuration
-global:
-  environment: production
-  imageRegistry: ${DOCKER_REGISTRY}
-  imageTag: latest
-  imagePullPolicy: Always
-  imagePullSecrets:
-    - name: relvy-registry-secret
 
 # Web application configuration
 web:
-  enabled: true
-  replicas: 2
-  image:
-    repository: relvy/relvy-app-onprem
-    tag: latest
-    pullPolicy: Always
-
-  resources:
-    requests:
-      memory: "1Gi"
-      cpu: "500m"
-    limits:
-      memory: "2Gi"
-      cpu: "1000m"
-
-  service:
-    type: ClusterIP
-    port: 80
-    targetPort: 8000
-
   ingress:
-    enabled: true
-    className: alb
     annotations:
-      alb.ingress.kubernetes.io/scheme: internet-facing
-      alb.ingress.kubernetes.io/target-type: ip
-      alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}, {"HTTP":80}]'
       alb.ingress.kubernetes.io/certificate-arn: ${CERT_ARN}
-      alb.ingress.kubernetes.io/ssl-redirect: '443'
-      alb.ingress.kubernetes.io/healthcheck-path: /health
-      alb.ingress.kubernetes.io/healthcheck-port: traffic-port
-      alb.ingress.kubernetes.io/success-codes: '200'
     hosts:
       - host: ${DOMAIN}
         paths:
@@ -301,106 +279,27 @@ web:
           - ${DOMAIN}
 
 # Celery worker configuration
-celery:
-  enabled: true
-  replicas: 2
-  image:
-    repository: relvy/relvy-app-onprem
-    tag: latest
-    pullPolicy: Always
-
-  resources:
-    requests:
-      memory: "2Gi"
-      cpu: "1000m"
-    limits:
-      memory: "4Gi"
-      cpu: "2000m"
 
 # Celery beat scheduler configuration
-celeryBeat:
-  enabled: true
-  replicas: 1
-  image:
-    repository: relvy/relvy-app-onprem
-    tag: latest
-    pullPolicy: Always
-
-  resources:
-    requests:
-      memory: "512Mi"
-      cpu: "250m"
-    limits:
-      memory: "1Gi"
-      cpu: "500m"
 
 # Redis configuration
-redis:
-  enabled: true
-  image:
-    repository: redis
-    tag: 7-alpine
-    pullPolicy: IfNotPresent
-
-  resources:
-    requests:
-      memory: "512Mi"
-      cpu: "250m"
-    limits:
-      memory: "1Gi"
-      cpu: "500m"
-
-  service:
-    type: ClusterIP
-    port: 6379
-    targetPort: 6379
 
 # Database Configuration
 database:
-  external:
-    enabled: true
-    endpoint: "${DB_ENDPOINT}"
-    port: ${DB_PORT}
-    name: "${DB_NAME}"
-    user: "${DB_USER}"
-    password: "${DB_PASSWORD}"
-    sslMode: "require"
+  endpoint: "${DB_ENDPOINT}"
+  port: ${DB_PORT}
+  name: "${DB_NAME}"
 
 # Secrets configuration
-secrets:
-  database: relvy-db-secret
-  slack: relvy-slack-secret
-  flask: relvy-flask-secret
 
 # Application Configuration
 config:
   serverHostname: "https://${DOMAIN}"
-  environment: "production"
-
-  # LLM Configuration
-  llmClient: "openai"
-  llmModel: "gpt-4"
-  heavyLlmClient: "openai"
-  heavyLlmModel: "gpt-4"
-  reasoningLlmClient: "openai"
-  reasoningLlmModel: "gpt-4"
-
-  flaskSecretKey: "${FLASK_SECRET_KEY}"
-
-  # Slack Integration
-  slack:
-    enabled: ${SLACK_ENABLED}
-    clientId: "${SLACK_CLIENT_ID}"
-    clientSecret: "${SLACK_CLIENT_SECRET}"
 
 # Persistence configuration
-persistence:
-  enabled: true
-  storageClass: ""
-  size: 10Gi
 EOF
 
-print_success "values.yaml created"
+print_success "my-values.yaml created"
 
 # Create secrets
 print_status "Creating Kubernetes secrets..."
@@ -410,7 +309,8 @@ kubectl delete secret relvy-db-secret relvy-flask-secret relvy-registry-secret 2
 
 # Create secrets
 kubectl create secret generic relvy-db-secret \
-  --from-literal=password="${DB_PASSWORD}"
+  --from-literal=password="${DB_PASSWORD}" \
+  --from-literal=username="${DB_USER}"
 
 kubectl create secret generic relvy-flask-secret \
   --from-literal=key="${FLASK_SECRET_KEY}"
@@ -458,16 +358,6 @@ else
     exit 1
 fi
 
-# Create optional secrets
-if [[ "$SLACK_ENABLED" == "true" ]]; then
-    kubectl delete secret relvy-slack-secret 2>/dev/null || true
-    kubectl create secret generic relvy-slack-secret \
-      --from-literal=SLACK_CLIENT_ID="${SLACK_CLIENT_ID}" \
-      --from-literal=SLACK_CLIENT_SECRET="${SLACK_CLIENT_SECRET}"
-fi
-
-print_success "Secrets created"
-
 # Check if AWS Load Balancer Controller is installed
 print_status "Checking AWS Load Balancer Controller installation..."
 if ! helm list | grep -q "aws-load-balancer-controller"; then
@@ -496,18 +386,72 @@ else
     fi
 fi
 
-# Save configuration for future use
-save_config
-
 # Deploy Relvy
 print_status "Deploying Relvy..."
 
 if [[ "$UPGRADE_MODE" == "true" ]]; then
-    helm upgrade relvy ./charts/relvy -f values.yaml
+    helm upgrade relvy ./charts/relvy -f my-values.yaml
     print_success "Relvy upgraded successfully"
 else
-    helm install relvy ./charts/relvy -f values.yaml
+    helm install relvy ./charts/relvy -f my-values.yaml
     print_success "Relvy installed successfully"
+fi
+
+create_langfuse_values() {
+# Create langfuse_values.yaml
+print_status "Creating langfuse_values.yaml..."
+
+cat > langfuse_values.yaml << EOF
+langfuse:
+  salt:
+    value: $(openssl rand -hex 16)
+  nextauth:
+    secret:
+      value: $(openssl rand -hex 32)
+postgresql:
+  auth:
+    username: langfuse
+    password: $(openssl rand -hex 16)
+  primary:
+    persistence:
+      enabled: false
+clickhouse:
+  auth:
+    password: $(openssl rand -hex 16)
+  persistence:
+    enabled: false
+  replicaCount: 1
+redis:
+  auth:
+    password: $(openssl rand -hex 16)
+  primary:
+    persistence:
+      enabled: false
+s3:
+  auth:
+    rootPassword: ""
+  persistence:
+    enabled: false
+EOF
+
+print_success "langfuse_values.yaml created"
+
+}
+
+# Deploy langfuse
+if helm list -n langfuse | grep -q "langfuse"; then
+  echo "Langfuse is already installed. Skipping deployment."
+else
+  print_status "Deploying Langfuse..."
+  helm repo add langfuse https://langfuse.github.io/langfuse-k8s
+  helm repo update
+
+  create_langfuse_values
+
+  # Install Langfuse
+  helm install langfuse langfuse/langfuse --namespace langfuse -f langfuse_values.yaml --create-namespace
+
+  print_success "Langfuse deployed successfully"
 fi
 
 # Wait for deployment
@@ -536,9 +480,6 @@ if [[ -n "$LB_DNS" ]]; then
     echo
     print_warning "IMPORTANT: Please create the following DNS records:"
     echo "  ${DOMAIN} → ${LB_DNS}"
-    if [[ "$SLACK_ENABLED" == "true" ]]; then
-        echo "  api.${DOMAIN} → ${LB_DNS}"
-    fi
     echo
 else
     print_warning "Could not get load balancer DNS. Please check your AWS Load Balancer Controller."
@@ -559,29 +500,25 @@ echo "3. Access Relvy at: https://${DOMAIN}"
 echo "4. Check status with: kubectl get pods -l app.kubernetes.io/name=relvy"
 echo
 print_status "Configuration files:"
-echo "- values.yaml: Your Relvy configuration"
-echo "- $CONFIG_FILE: Your saved configuration (for future installations)"
+echo "- my-values.yaml: Your Relvy configuration"
 echo "- Install script: install.sh"
 echo
 print_status "Useful commands:"
 echo "- View logs: kubectl logs -f deployment/relvy-web -c web"
 echo "- Check status: kubectl get pods -l app.kubernetes.io/name=relvy"
-echo "- Upgrade: helm upgrade relvy ./charts/relvy -f values.yaml"
+echo "- Upgrade: helm upgrade relvy ./charts/relvy -f my-values.yaml"
 echo "- Uninstall: helm uninstall relvy"
 echo "- Reinstall with saved config: ./install.sh (will use saved values)"
 echo
 
-if [[ "$SLACK_ENABLED" == "true" ]]; then
-    echo
-    print_warning "Slack Integration Setup Required:"
-    echo "1. Create a Slack app at https://api.slack.com/apps"
-    echo "2. Configure webhook URLs:"
-    echo "   - Slash commands: https://api.${DOMAIN}/api/slack/slash"
-    echo "   - Event subscriptions: https://api.${DOMAIN}/api/slack/webhook"
-    echo "   - Interactivity: https://api.${DOMAIN}/api/slack/interaction_webhook"
-    echo "   - OAuth redirect: https://api.${DOMAIN}/slack/redirect"
-    echo "3. Install the app to your workspace"
-    echo
-fi
+echo
+print_warning "Slack Integration Setup Required:"
+echo "1. Create a Slack app at https://api.slack.com/apps"
+echo "2. Configure webhook URLs:"
+echo "   - Slash commands: https://${DOMAIN}/api/slack/slash"
+echo "   - Event subscriptions: https://${DOMAIN}/api/slack/webhook"
+echo "   - Interactivity: https://${DOMAIN}/api/slack/interaction_webhook"
+echo "3. Install the app to your workspace"
+echo
 
 print_success "Installation completed successfully!"

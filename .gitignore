@@ -1,9 +1,5 @@
 # Relvy Helm Charts - .gitignore
 
-# Sensitive configuration files
-.relvy-install-config
-values.yaml
-
 # Temporary files
 *.tmp
 *.temp
@@ -33,6 +29,7 @@ charts/*.tgz
 test-values.yaml
 local-values.yaml
 my-values.yaml
+langfuse_values.yaml
 
 # Secrets and passwords
 *secret*
