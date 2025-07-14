@@ -429,7 +429,7 @@ redis:
       enabled: false
 s3:
   auth:
-    rootPassword: ""
+    rootPassword: "miniosecret"
   persistence:
     enabled: false
 EOF
