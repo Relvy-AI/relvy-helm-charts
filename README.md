@@ -486,30 +486,6 @@ gcloud sql databases create relvydb --instance=relvy-app-db
 gcloud sql instances describe relvy-app-db --format="value(connectionName)"
 ```
 
-## Architecture
-
-Relvy deploys the following components in your Kubernetes cluster:
-
-- **Web**: Flask application with Gunicorn for handling HTTP requests
-- **Celery Worker**: Background task processing for AI analysis and integrations
-- **Celery Beat**: Scheduled task scheduler for periodic maintenance
-- **Redis**: Message broker and caching layer
-- **Database Migration Job**: Runs database migrations during deployment
-
-## Scaling
-
-To scale Relvy components based on your load:
-
-```bash
-# Scale web replicas for increased HTTP traffic
-helm upgrade relvy ./charts/relvy --set web.replicas=4
-
-# Scale celery replicas for increased background processing
-helm upgrade relvy ./charts/relvy --set celery.replicas=4
-
-# Scale both simultaneously
-helm upgrade relvy ./charts/relvy --set web.replicas=4,celery.replicas=4
-```
 ### Step 6: Deploy Relvy
 
 #### Using the Interactive Installer
@@ -599,6 +575,30 @@ kubectl get ingress -l app.kubernetes.io/name=relvy
 curl -I https://relvy.yourdomain.com
 ```
 
+## Architecture
+
+Relvy deploys the following components in your Kubernetes cluster:
+
+- **Web**: Flask application with Gunicorn for handling HTTP requests
+- **Celery Worker**: Background task processing for AI analysis and integrations
+- **Celery Beat**: Scheduled task scheduler for periodic maintenance
+- **Redis**: Message broker and caching layer
+- **Database Migration Job**: Runs database migrations during deployment
+
+## Scaling
+
+To scale Relvy components based on your load:
+
+```bash
+# Scale web replicas for increased HTTP traffic
+helm upgrade relvy ./charts/relvy --set web.replicas=4
+
+# Scale celery replicas for increased background processing
+helm upgrade relvy ./charts/relvy --set celery.replicas=4
+
+# Scale both simultaneously
+helm upgrade relvy ./charts/relvy --set web.replicas=4,celery.replicas=4
+```
 ## Troubleshooting
 
 ### Logs
