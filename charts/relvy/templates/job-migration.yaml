@@ -24,7 +24,7 @@ spec:
       containers:
       - name: migration
         image: {{ include "relvy.image" . }}
-        imagePullPolicy: {{ .Values.web.image.pullPolicy }}
+        imagePullPolicy: {{ .Values.global.imagePullPolicy }}
         command: ["sh", "-c"]
         args: ["flask --app=resolveml db upgrade"]
         env:
