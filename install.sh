@@ -152,6 +152,7 @@ if [[ "$CONNECT_LANGFUSE" == "true" ]]; then
     # Update values.yaml with Langfuse configuration
     print_status "Creating langfuse secret..."
     
+    kubectl delete secret relvy-langfuse-secret 2>/dev/null || true
     kubectl create secret generic relvy-langfuse-secret \
       --from-literal=public_key="${LANGFUSE_PUBLIC_KEY}" \
       --from-literal=secret_key="${LANGFUSE_SECRET_KEY}"
@@ -429,7 +430,7 @@ redis:
       enabled: false
 s3:
   auth:
-    rootPassword: ""
+    rootPassword: "miniosecret"
   persistence:
     enabled: false
 EOF
