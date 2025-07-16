@@ -468,7 +468,7 @@ print_success "All deployments are ready"
 print_status "Getting load balancer DNS name..."
 LB_DNS=""
 for i in {1..30}; do
-    LB_DNS=$(kubectl get ingress relvy-web -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' 2>/dev/null || echo "")
+    LB_DNS=$(kubectl get ingress relvy-ingress -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' 2>/dev/null || echo "")
     if [[ -n "$LB_DNS" ]]; then
         break
     fi
