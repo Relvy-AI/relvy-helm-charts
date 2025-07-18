@@ -3,8 +3,6 @@
 # Web application configuration
 web:
   ingress:
-    annotations:
-      alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:xxx
     hosts:
       - host: subdomain.domain.com
         paths:

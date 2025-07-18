@@ -220,8 +220,6 @@ done
 
 # AWS Certificate Manager ARN
 echo
-print_status "AWS Certificate Manager Configuration:"
-prompt_with_default "AWS Certificate Manager ARN (e.g., arn:aws:acm:us-east-1:123456789012:certificate/xxxxx)" "$CERT_ARN" "CERT_ARN"
 
 # Optional integrations
 echo
@@ -267,8 +265,6 @@ cat > my-values.yaml << EOF
 # Web application configuration
 web:
   ingress:
-    annotations:
-      alb.ingress.kubernetes.io/certificate-arn: ${CERT_ARN}
     hosts:
       - host: ${DOMAIN}
         paths:
