@@ -82,6 +82,8 @@ spec:
           value: "production"
         - name: LANGFUSE_OBSERVE_DECORATOR_IO_CAPTURE_ENABLED
           value: "false"
+        - name: ENABLE_SLACK_SOCKET_MODE
+          value: "true"
         resources:
           {{- toYaml .Values.web.resources | nindent 10 }}
         livenessProbe:
