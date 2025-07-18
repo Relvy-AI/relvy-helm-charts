@@ -3,7 +3,7 @@ entries:
   relvy:
   - apiVersion: v2
     appVersion: 0.1.3
-    created: "2025-07-18T11:22:34.558211-07:00"
+    created: "2025-07-18T11:28:48.426943-07:00"
     description: AI-powered incident management and analysis platform
     digest: cdfe14cfcd0406ca6910ec43a95e70b9aab4a9f02ce0d9959db648ada53a9ce6
     home: https://relvy.ai
@@ -22,4 +22,4 @@ entries:
     urls:
     - https://relvy-ai.github.io/relvy-helm-charts/relvy-0.1.4.tgz
     version: 0.1.4
-generated: "2025-07-18T11:22:34.557231-07:00"
+generated: "2025-07-18T11:28:48.425822-07:00"
