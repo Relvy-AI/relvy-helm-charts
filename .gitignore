@@ -17,8 +17,6 @@
 Thumbs.db
 
 # Helm generated files
-*.tgz
-charts/*.tgz
 
 # Backup files
 *.bak
