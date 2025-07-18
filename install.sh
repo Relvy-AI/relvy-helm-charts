@@ -275,8 +275,7 @@ web:
           - path: /
             pathType: Prefix
     tls:
-      - secretName: relvy-tls
-        hosts:
+      - hosts:
           - ${DOMAIN}
 
 # Celery worker configuration
