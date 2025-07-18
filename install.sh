@@ -125,13 +125,13 @@ echo
 # If connect_langfuse is provided, handle it as a simple upgrade operation
 if [[ "$CONNECT_LANGFUSE" == "true" ]]; then
     print_status "Langfuse connection mode - updating Relvy with Langfuse configuration..."
-    
+
     # Check if Relvy is installed
     if ! helm list | grep -q "relvy"; then
         print_error "Relvy is not installed. Please install Relvy first before connecting Langfuse."
         exit 1
     fi
-    
+
     # Load existing values.yaml if it exists
     if [[ -f "my-values.yaml" ]]; then
         print_status "Loading existing values.yaml..."
@@ -139,7 +139,7 @@ if [[ "$CONNECT_LANGFUSE" == "true" ]]; then
         print_error "my-values.yaml not found. Please run the full installation first."
         exit 1
     fi
-    
+
     # Prompt for Langfuse credentials
     echo
     print_status "Langfuse Configuration:"
@@ -148,29 +148,29 @@ if [[ "$CONNECT_LANGFUSE" == "true" ]]; then
     echo
     prompt_with_default "Langfuse Host (optional, leave empty for default)" "$LANGFUSE_HOST" "LANGFUSE_HOST"
     LANGFUSE_HOST=${LANGFUSE_HOST:-""}
-    
+
     # Update values.yaml with Langfuse configuration
     print_status "Creating langfuse secret..."
-    
+
     kubectl delete secret relvy-langfuse-secret 2>/dev/null || true
     kubectl create secret generic relvy-langfuse-secret \
       --from-literal=public_key="${LANGFUSE_PUBLIC_KEY}" \
       --from-literal=secret_key="${LANGFUSE_SECRET_KEY}"
 
-    
+
     # Restart Relvy
     print_status "Restarting Relvy to apply Langfuse configuration..."
-    
+
     # Restart the web and celery deployments
     kubectl rollout restart deployment/relvy-web
     kubectl rollout restart deployment/relvy-celery
     kubectl rollout restart deployment/relvy-celery-beat
-    
+
     # Wait for deployments to be ready
     print_status "Waiting for deployments to be ready..."
     kubectl wait --for=condition=available deployment/relvy-web --timeout=300s
     kubectl wait --for=condition=available deployment/relvy-celery --timeout=300s
-    
+
     print_success "Relvy upgraded with Langfuse configuration"
     echo
     exit 0
@@ -387,14 +387,27 @@ else
     fi
 fi
 
+# Add Relvy Helm repository
+print_status "Adding Relvy Helm repository..."
+helm repo add relvy https://relvy-ai.github.io/relvy-helm-charts
+helm repo update
+
+# Verify chart is available
+if ! helm search repo relvy/relvy | grep -q "relvy/relvy"; then
+    print_error "Relvy chart not found in repository. Please check the repository URL."
+    exit 1
+fi
+
+print_success "Relvy Helm repository added successfully"
+
 # Deploy Relvy
 print_status "Deploying Relvy..."
 
 if [[ "$UPGRADE_MODE" == "true" ]]; then
-    helm upgrade relvy ./charts/relvy -f my-values.yaml
+    helm upgrade relvy relvy/relvy -f my-values.yaml
     print_success "Relvy upgraded successfully"
 else
-    helm install relvy ./charts/relvy -f my-values.yaml
+    helm install relvy relvy/relvy -f my-values.yaml
     print_success "Relvy installed successfully"
 fi
 
@@ -507,7 +520,7 @@ echo
 print_status "Useful commands:"
 echo "- View logs: kubectl logs -f deployment/relvy-web -c web"
 echo "- Check status: kubectl get pods -l app.kubernetes.io/name=relvy"
-echo "- Upgrade: helm upgrade relvy ./charts/relvy -f my-values.yaml"
+echo "- Upgrade: helm upgrade relvy relvy/relvy -f my-values.yaml"
 echo "- Uninstall: helm uninstall relvy"
 echo "- Reinstall with saved config: ./install.sh (will use saved values)"
 echo
