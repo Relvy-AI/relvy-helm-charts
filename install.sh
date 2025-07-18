@@ -11,16 +11,22 @@ NC='\033[0m' # No Color
 
 # Parse command line arguments
 CONNECT_LANGFUSE=false
+RELVY_VERSION=""
 while [[ $# -gt 0 ]]; do
     case $1 in
         --connect_langfuse)
             CONNECT_LANGFUSE=true
             shift
             ;;
+        --version)
+            RELVY_VERSION="$2"
+            shift 2
+            ;;
         *)
             echo "Unknown option: $1"
-            echo "Usage: $0 [--connect_langfuse]"
+            echo "Usage: $0 [--connect_langfuse] [--version VERSION]"
             echo "  --connect_langfuse: Update existing Relvy installation with Langfuse integration"
+            echo "  --version VERSION: Install specific Relvy version (e.g., 0.1.4)"
             exit 1
             ;;
     esac
@@ -403,11 +409,18 @@ print_success "Relvy Helm repository added successfully"
 # Deploy Relvy
 print_status "Deploying Relvy..."
 
+# Build helm command with optional version
+HELM_CMD=""
+if [[ -n "$RELVY_VERSION" ]]; then
+    HELM_CMD="--version $RELVY_VERSION"
+    print_status "Installing Relvy version: $RELVY_VERSION"
+fi
+
 if [[ "$UPGRADE_MODE" == "true" ]]; then
-    helm upgrade relvy relvy/relvy -f my-values.yaml
+    helm upgrade relvy relvy/relvy -f my-values.yaml $HELM_CMD
     print_success "Relvy upgraded successfully"
 else
-    helm install relvy relvy/relvy -f my-values.yaml
+    helm install relvy relvy/relvy -f my-values.yaml $HELM_CMD
     print_success "Relvy installed successfully"
 fi
 
