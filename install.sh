@@ -384,12 +384,14 @@ fi
 
 # Deploy Relvy
 print_status "Deploying Relvy..."
+helm repo add relvy https://relvy-ai.github.io/relvy-helm-charts
+helm repo update
 
 if [[ "$UPGRADE_MODE" == "true" ]]; then
-    helm upgrade relvy ./charts/relvy -f my-values.yaml
+    helm upgrade relvy relvy/relvy -f my-values.yaml
     print_success "Relvy upgraded successfully"
 else
-    helm install relvy ./charts/relvy -f my-values.yaml
+    helm install relvy relvy/relvy -f my-values.yaml
     print_success "Relvy installed successfully"
 fi
 
@@ -502,19 +504,9 @@ echo
 print_status "Useful commands:"
 echo "- View logs: kubectl logs -f deployment/relvy-web -c web"
 echo "- Check status: kubectl get pods -l app.kubernetes.io/name=relvy"
-echo "- Upgrade: helm upgrade relvy ./charts/relvy -f my-values.yaml"
+echo "- Upgrade: helm upgrade relvy relvy/relvy -f my-values.yaml"
 echo "- Uninstall: helm uninstall relvy"
 echo "- Reinstall with saved config: ./install.sh (will use saved values)"
-echo
-
-echo
-print_warning "Slack Integration Setup Required:"
-echo "1. Create a Slack app at https://api.slack.com/apps"
-echo "2. Configure webhook URLs:"
-echo "   - Slash commands: https://${DOMAIN}/api/slack/slash"
-echo "   - Event subscriptions: https://${DOMAIN}/api/slack/webhook"
-echo "   - Interactivity: https://${DOMAIN}/api/slack/interaction_webhook"
-echo "3. Install the app to your workspace"
 echo
 
 print_success "Installation completed successfully!"
