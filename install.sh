@@ -220,8 +220,6 @@ done
 
 # AWS Certificate Manager ARN
 echo
-print_status "AWS Certificate Manager Configuration:"
-prompt_with_default "AWS Certificate Manager ARN (e.g., arn:aws:acm:us-east-1:123456789012:certificate/xxxxx)" "$CERT_ARN" "CERT_ARN"
 
 # Optional integrations
 echo
@@ -267,16 +265,13 @@ cat > my-values.yaml << EOF
 # Web application configuration
 web:
   ingress:
-    annotations:
-      alb.ingress.kubernetes.io/certificate-arn: ${CERT_ARN}
     hosts:
       - host: ${DOMAIN}
         paths:
           - path: /
             pathType: Prefix
     tls:
-      - secretName: relvy-tls
-        hosts:
+      - hosts:
           - ${DOMAIN}
 
 # Celery worker configuration
@@ -402,6 +397,8 @@ print_success "Relvy Helm repository added successfully"
 
 # Deploy Relvy
 print_status "Deploying Relvy..."
+helm repo add relvy https://relvy-ai.github.io/relvy-helm-charts
+helm repo update
 
 if [[ "$UPGRADE_MODE" == "true" ]]; then
     helm upgrade relvy relvy/relvy -f my-values.yaml
@@ -523,16 +520,6 @@ echo "- Check status: kubectl get pods -l app.kubernetes.io/name=relvy"
 echo "- Upgrade: helm upgrade relvy relvy/relvy -f my-values.yaml"
 echo "- Uninstall: helm uninstall relvy"
 echo "- Reinstall with saved config: ./install.sh (will use saved values)"
-echo
-
-echo
-print_warning "Slack Integration Setup Required:"
-echo "1. Create a Slack app at https://api.slack.com/apps"
-echo "2. Configure webhook URLs:"
-echo "   - Slash commands: https://${DOMAIN}/api/slack/slash"
-echo "   - Event subscriptions: https://${DOMAIN}/api/slack/webhook"
-echo "   - Interactivity: https://${DOMAIN}/api/slack/interaction_webhook"
-echo "3. Install the app to your workspace"
 echo
 
 print_success "Installation completed successfully!"

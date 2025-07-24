@@ -3,16 +3,13 @@
 # Web application configuration
 web:
   ingress:
-    annotations:
-      alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:xxx
     hosts:
       - host: subdomain.domain.com
         paths:
           - path: /
             pathType: Prefix
     tls:
-      - secretName: relvy-tls
-        hosts:
+      - hosts:
           - subdomain.domain.com
 
 # Celery worker configuration

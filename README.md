@@ -359,8 +359,6 @@ aws acm request-certificate \
 
 This will return a certificate ARN that you'll use later.
 
-**📝 Save This Value**: Copy the certificate ARN - you'll need it for the installer and ingress configuration.
-
 ```bash
 CERTIFICATE_ARN=<your-certificate-arn>
 ```
@@ -501,7 +499,7 @@ cd relvy-helm-charts
 The installer will prompt you for:
 - Database endpoint and credentials
 - Domain name
-- AWS Certificate Manager ARN
+- Docker password
 
 ### Step 7: Configure Domain and DNS
 
@@ -591,13 +589,13 @@ To scale Relvy components based on your load:
 
 ```bash
 # Scale web replicas for increased HTTP traffic
-helm upgrade relvy ./charts/relvy --set web.replicas=4
+helm upgrade relvy relvy/relvy --set web.replicas=4
 
 # Scale celery replicas for increased background processing
-helm upgrade relvy ./charts/relvy --set celery.replicas=4
+helm upgrade relvy relvy/relvy --set celery.replicas=4
 
 # Scale both simultaneously
-helm upgrade relvy ./charts/relvy --set web.replicas=4,celery.replicas=4
+helm upgrade relvy relvy/relvy --set web.replicas=4,celery.replicas=4
 ```
 ## Troubleshooting
 
@@ -633,7 +631,7 @@ curl https://relvy.yourdomain.com/health
 helm repo update
 
 # Upgrade Relvy
-helm upgrade relvy ./charts/relvy -f my-values.yaml
+helm upgrade relvy relvy/relvy -f my-values.yaml
 ```
 
 ## Uninstalling
