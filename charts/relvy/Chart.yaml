@@ -2,8 +2,8 @@ apiVersion: v2
 name: relvy
 description: AI-powered incident management and analysis platform
 type: application
-version: 0.3.0
-appVersion: "0.3.0"
+version: 0.3.1
+appVersion: "0.3.1"
 keywords:
   - incident-management
   - ai
