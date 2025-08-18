@@ -2,8 +2,29 @@ apiVersion: v1
 entries:
   relvy:
   - apiVersion: v2
+    appVersion: 0.3.0
+    created: "2025-08-18T12:25:28.328309-07:00"
+    description: AI-powered incident management and analysis platform
+    digest: 395d739c10aa97f1cd4c13fee05f61f755b4eb952edfd70ca6a62209c494e386
+    home: https://relvy.ai
+    keywords:
+    - incident-management
+    - ai
+    - observability
+    - automation
+    maintainers:
+    - email: support@relvy.ai
+      name: Relvy Team
+    name: relvy
+    sources:
+    - https://github.com/Relvy-AI/relvy
+    type: application
+    urls:
+    - https://relvy-ai.github.io/relvy-helm-charts/relvy-0.3.0.tgz
+    version: 0.3.0
+  - apiVersion: v2
     appVersion: 0.2.3
-    created: "2025-08-07T14:39:04.913214-07:00"
+    created: "2025-08-18T12:25:28.327743-07:00"
     description: AI-powered incident management and analysis platform
     digest: 199d362749a4044e1b0e956cdacbf578986ec2e155ff23c0b43e5e7e20d79f23
     home: https://relvy.ai
@@ -24,7 +45,7 @@ entries:
     version: 0.2.3
   - apiVersion: v2
     appVersion: 0.2.2
-    created: "2025-08-07T14:39:04.91288-07:00"
+    created: "2025-08-18T12:25:28.327474-07:00"
     description: AI-powered incident management and analysis platform
     digest: 3473c6a8c80d112574e3ec2354dfb7ab1ff8acce492444766fb6aa75f4f28a18
     home: https://relvy.ai
@@ -45,7 +66,7 @@ entries:
     version: 0.2.2
   - apiVersion: v2
     appVersion: 0.2.1
-    created: "2025-08-07T14:39:04.912547-07:00"
+    created: "2025-08-18T12:25:28.327184-07:00"
     description: AI-powered incident management and analysis platform
     digest: 909674081444cb34952b420f51a58d1ec2a989e41aa247d1b6519af578c7b8da
     home: https://relvy.ai
@@ -66,7 +87,7 @@ entries:
     version: 0.2.1
   - apiVersion: v2
     appVersion: 0.2.0
-    created: "2025-08-07T14:39:04.912183-07:00"
+    created: "2025-08-18T12:25:28.326875-07:00"
     description: AI-powered incident management and analysis platform
     digest: 396a7702983ba859669a7b558b73f8283799a372a2b50aca7c8536db3887a9b6
     home: https://relvy.ai
@@ -87,7 +108,7 @@ entries:
     version: 0.2.0
   - apiVersion: v2
     appVersion: 0.1.9
-    created: "2025-08-07T14:39:04.911784-07:00"
+    created: "2025-08-18T12:25:28.326565-07:00"
     description: AI-powered incident management and analysis platform
     digest: 2ac30afe0b58917f9701c2acdd0666a94fe7ffd4e7e13ba7519b3f5c670663d1
     home: https://relvy.ai
@@ -108,7 +129,7 @@ entries:
     version: 0.1.9
   - apiVersion: v2
     appVersion: 0.1.8
-    created: "2025-08-07T14:39:04.91137-07:00"
+    created: "2025-08-18T12:25:28.32625-07:00"
     description: AI-powered incident management and analysis platform
     digest: 01f32527f5e176183a323996f92c411e46a26bfe0abbc98d717ae478d3058b26
     home: https://relvy.ai
@@ -129,7 +150,7 @@ entries:
     version: 0.1.8
   - apiVersion: v2
     appVersion: 0.1.6
-    created: "2025-08-07T14:39:04.910948-07:00"
+    created: "2025-08-18T12:25:28.325934-07:00"
     description: AI-powered incident management and analysis platform
     digest: 73b41edf1cfda1cb63be95ae24af09b82570f8c00557b3fe180e243dc02addeb
     home: https://relvy.ai
@@ -150,7 +171,7 @@ entries:
     version: 0.1.7
   - apiVersion: v2
     appVersion: 0.1.5
-    created: "2025-08-07T14:39:04.910545-07:00"
+    created: "2025-08-18T12:25:28.325549-07:00"
     description: AI-powered incident management and analysis platform
     digest: 8aaebe04d0ba2e1b5a62e051b6218aae78054963f0505b936d7d0831048eb8c7
     home: https://relvy.ai
@@ -171,7 +192,7 @@ entries:
     version: 0.1.6
   - apiVersion: v2
     appVersion: 0.1.4
-    created: "2025-08-07T14:39:04.910145-07:00"
+    created: "2025-08-18T12:25:28.325144-07:00"
     description: AI-powered incident management and analysis platform
     digest: 16ef0808891cf1af86d4a4d2a8c9491ff61c40e2a0d49b1af96c7d80e912aaff
     home: https://relvy.ai
@@ -192,7 +213,7 @@ entries:
     version: 0.1.5
   - apiVersion: v2
     appVersion: 0.1.3
-    created: "2025-08-07T14:39:04.909281-07:00"
+    created: "2025-08-18T12:25:28.324738-07:00"
     description: AI-powered incident management and analysis platform
     digest: cdfe14cfcd0406ca6910ec43a95e70b9aab4a9f02ce0d9959db648ada53a9ce6
     home: https://relvy.ai
@@ -211,4 +232,4 @@ entries:
     urls:
     - https://relvy-ai.github.io/relvy-helm-charts/relvy-0.1.4.tgz
     version: 0.1.4
-generated: "2025-08-07T14:39:04.908747-07:00"
+generated: "2025-08-18T12:25:28.324239-07:00"
