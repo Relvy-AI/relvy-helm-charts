@@ -5,7 +5,7 @@
 global:
   environment: onprem
   imageRegistry: docker.io
-  imageTag: 'v0.3.2'
+  imageTag: 'v0.3.3'
   imagePullPolicy: IfNotPresent
   imageName: relvy/relvy-app-onprem
   imagePullSecrets:
