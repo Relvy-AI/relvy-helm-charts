@@ -52,7 +52,7 @@ web:
 # Celery worker configuration
 celery:
   enabled: true
-  replicas: 2
+  replicas: 6
 
   resources:
     requests:
