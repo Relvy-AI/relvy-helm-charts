@@ -53,6 +53,11 @@ spec:
           value: "/app"
         - name: SERVER_HOSTNAME
           value: {{ .Values.config.serverHostname | quote }}
+        - name: RELVYAI_IMAGE_PULL_DOCKER_CONFIG_JSON
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.secrets.revyaiRegistry }}
+              key: .dockerconfigjson
         - name: LANGFUSE_PUBLIC_KEY
           valueFrom:
             secretKeyRef:

@@ -110,6 +110,7 @@ secrets:
   slack: relvy-slack-secret
   flask: relvy-flask-secret
   langfuse: relvy-langfuse-secret
+  revyaiRegistry: relvy-registry-secret
 
 # Application Configuration
 config:
