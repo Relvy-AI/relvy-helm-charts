@@ -53,11 +53,19 @@ spec:
           value: "/app"
         - name: SERVER_HOSTNAME
           value: {{ .Values.config.serverHostname | quote }}
+        - name: SEND_USAGE_DATA_JOB_INTERVAL
+          value: '600'
         - name: RELVYAI_IMAGE_PULL_DOCKER_CONFIG_JSON
           valueFrom:
             secretKeyRef:
               name: {{ .Values.secrets.revyaiRegistry }}
               key: .dockerconfigjson
+        - name: RELVYAI_LICENSE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.secrets.license }}
+              key: key
+              optional: true
         - name: LANGFUSE_PUBLIC_KEY
           valueFrom:
             secretKeyRef:
