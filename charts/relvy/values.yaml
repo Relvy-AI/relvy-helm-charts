@@ -5,7 +5,7 @@
 global:
   environment: onprem
   imageRegistry: docker.io
-  imageTag: 'v0.3.3'
+  imageTag: 'v0.3.6'
   imagePullPolicy: IfNotPresent
   imageName: relvy/relvy-app-onprem
   imagePullSecrets:
@@ -111,6 +111,7 @@ secrets:
   flask: relvy-flask-secret
   langfuse: relvy-langfuse-secret
   revyaiRegistry: relvy-registry-secret
+  license: relvy-license-secret
 
 # Application Configuration
 config:
