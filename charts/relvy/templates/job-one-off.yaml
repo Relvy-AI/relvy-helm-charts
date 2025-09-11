@@ -1,0 +1,83 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "relvy.fullname" . }}-one-off
+  labels:
+    {{- include "relvy.labels" . | nindent 4 }}
+    app.kubernetes.io/component: one-off
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "-4"
+    "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation
+spec:
+  template:
+    metadata:
+      labels:
+        {{- include "relvy.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: one-off
+    spec:
+      {{- if .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml .Values.global.imagePullSecrets | nindent 8 }}
+      {{- end }}
+      restartPolicy: OnFailure
+      containers:
+      - name: one-off
+        image: {{ include "relvy.image" . }}
+        imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+        command: ["sh", "-c"]
+        args: ["python resolveml/one_off_jobs/generate_suggested_investigations.py"]
+        env:
+        - name: ENVIRONMENT
+          value: {{ .Values.config.environment | quote }}
+        - name: DB_HOST
+          value: {{ .Values.database.endpoint	 | quote }}
+        - name: DB_PORT
+          value: {{ .Values.database.port | quote }}
+        - name: DB_NAME
+          value: {{ .Values.database.name | quote }}
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.secrets.database }}
+              key: username
+        - name: DB_PASS
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.secrets.database }}
+              key: password
+        - name: REDIS_URL
+          value: {{ include "relvy.redisUrl" . | quote }}
+        - name: PYTHONPATH
+          value: "/app"
+        - name: SERVER_HOSTNAME
+          value: {{ .Values.config.serverHostname | quote }}
+        - name: RELVYAI_IMAGE_PULL_DOCKER_CONFIG_JSON
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.secrets.revyaiRegistry }}
+              key: .dockerconfigjson
+        - name: RELVYAI_LICENSE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.secrets.license }}
+              key: key
+              optional: true
+        - name: LANGFUSE_PUBLIC_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.secrets.langfuse }}
+              key: public_key
+              optional: true
+        - name: LANGFUSE_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.secrets.langfuse }}
+              key: secret_key
+              optional: true
+        - name: LANGFUSE_HOST
+          value: "http://langfuse-web.langfuse.svc.cluster.local:3000"
+        - name: LANGFUSE_TRACING_ENVIRONMENT
+          value: "production"
+        - name: LANGFUSE_OBSERVE_DECORATOR_IO_CAPTURE_ENABLED
+          value: "false"
