@@ -28,8 +28,6 @@ spec:
         command: ["sh", "-c"]
         args: ["python resolveml/one_off_jobs/generate_suggested_investigations.py"]
         env:
-        - name: SUGGESTED_INVESTIGATIONS_GEN_JOB_INTERVAL
-          value: '900'
         - name: ENVIRONMENT
           value: {{ .Values.config.environment | quote }}
         - name: DB_HOST
