@@ -82,6 +82,18 @@ spec:
           value: "production"
         - name: LANGFUSE_OBSERVE_DECORATOR_IO_CAPTURE_ENABLED
           value: "false"
+        - name: GITHUB_APP_PRIVATE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.secrets.github }}
+              key: private_key
+              optional: true
+        - name: GITHUB_APP_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.secrets.github }}
+              key: client_id
+              optional: true
         resources:
           {{- toYaml .Values.celeryBeat.resources | nindent 10 }}
 {{- end }}

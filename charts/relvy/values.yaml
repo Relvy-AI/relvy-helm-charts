@@ -112,6 +112,7 @@ secrets:
   langfuse: relvy-langfuse-secret
   revyaiRegistry: relvy-registry-secret
   license: relvy-license-secret
+  github: relvy-github-secret
 
 # Application Configuration
 config:

@@ -1,33 +1,32 @@
-{{- if .Values.celery.enabled }}
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: batch/v1
+kind: Job
 metadata:
-  name: {{ include "relvy.fullname" . }}-celery
+  name: {{ include "relvy.fullname" . }}-one-off
   labels:
     {{- include "relvy.labels" . | nindent 4 }}
-    app.kubernetes.io/component: celery
+    app.kubernetes.io/component: one-off
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "-3"
+    "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation
 spec:
-  replicas: {{ .Values.celery.replicas }}
-  selector:
-    matchLabels:
-      {{- include "relvy.selectorLabels" . | nindent 6 }}
-      app.kubernetes.io/component: celery
   template:
     metadata:
       labels:
         {{- include "relvy.selectorLabels" . | nindent 8 }}
-        app.kubernetes.io/component: celery
+        app.kubernetes.io/component: one-off
     spec:
       {{- if .Values.global.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml .Values.global.imagePullSecrets | nindent 8 }}
       {{- end }}
+      restartPolicy: OnFailure
       containers:
-      - name: celery
+      - name: one-off
         image: {{ include "relvy.image" . }}
         imagePullPolicy: {{ .Values.global.imagePullPolicy }}
         command: ["sh", "-c"]
-        args: ["celery -A make_celery worker --loglevel INFO --concurrency=4"]
+        args: ["python resolveml/one_off_jobs/run_facet_fields_discovery_on_upgrade.py"]
         env:
         - name: ENVIRONMENT
           value: {{ .Values.config.environment | quote }}
@@ -94,6 +93,3 @@ spec:
               name: {{ .Values.secrets.github }}
               key: client_id
               optional: true
-        resources:
-          {{- toYaml .Values.celery.resources | nindent 10 }}
-{{- end }}
