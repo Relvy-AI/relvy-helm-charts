@@ -54,3 +54,13 @@ spec:
           value: {{ .Values.config.serverHostname | quote }}
         - name: LANGFUSE_TRACING_ENVIRONMENT
           value: "production"
+        - name: GITHUB_APP_PRIVATE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.secrets.github }}
+              key: private_key
+        - name: GITHUB_APP_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.secrets.github }}
+              key: client_id

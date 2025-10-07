@@ -84,6 +84,16 @@ spec:
           value: "false"
         - name: ENABLE_SLACK_SOCKET_MODE
           value: "true"
+        - name: GITHUB_APP_PRIVATE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.secrets.github }}
+              key: private_key
+        - name: GITHUB_APP_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.secrets.github }}
+              key: client_id
         resources:
           {{- toYaml .Values.web.resources | nindent 10 }}
         livenessProbe:
