@@ -64,6 +64,12 @@ spec:
           value: "/app"
         - name: PORT
           value: {{ .Values.config.port | quote }}
+        - name: RELVYAI_LICENSE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.secrets.license }}
+              key: key
+              optional: true
         - name: LANGFUSE_PUBLIC_KEY
           valueFrom:
             secretKeyRef:
