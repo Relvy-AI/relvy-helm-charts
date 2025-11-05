@@ -77,9 +77,17 @@ spec:
               key: secret_key
               optional: true
         - name: LANGFUSE_HOST
-          value: "http://langfuse-web.langfuse.svc.cluster.local:3000"
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.secrets.langfuse }}
+              key: host
+              optional: true
         - name: LANGFUSE_TRACING_ENVIRONMENT
-          value: "production"
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.secrets.langfuse }}
+              key: env
+              optional: true
         - name: LANGFUSE_OBSERVE_DECORATOR_IO_CAPTURE_ENABLED
           value: "false"
         - name: GITHUB_APP_PRIVATE_KEY
