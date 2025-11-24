@@ -250,6 +250,27 @@ if [[ $PASSWORD_LENGTH -eq 0 ]]; then
     exit 1
 fi
 
+# Custom SSL Certificates (optional)
+echo
+print_status "Custom SSL Certificates (Optional):"
+print_status "If your organization uses custom Certificate Authorities (CA), you can provide"
+print_status "a CA bundle file to enable SSL connections to internal services."
+echo
+read -p "Do you want to provide custom CA certificates? (y/N): " ENABLE_CUSTOM_CERTS
+ENABLE_CUSTOM_CERTS=${ENABLE_CUSTOM_CERTS:-n}
+
+if [[ "$ENABLE_CUSTOM_CERTS" =~ ^[Yy]$ ]]; then
+    while true; do
+        prompt_with_default "Path to CA bundle file (PEM format)" "$CA_BUNDLE_PATH" "CA_BUNDLE_PATH"
+        if [[ -f "$CA_BUNDLE_PATH" ]]; then
+            print_success "CA bundle file found: $CA_BUNDLE_PATH"
+            break
+        else
+            print_error "File not found: $CA_BUNDLE_PATH"
+        fi
+    done
+fi
+
 # Generate random secrets
 FLASK_SECRET_KEY=$(generate_random_string)
 
@@ -293,6 +314,11 @@ config:
   serverHostname: "https://${DOMAIN}"
 
 # Persistence configuration
+
+# Custom SSL Certificates (optional)
+customCerts:
+  enabled: $(if [[ "$ENABLE_CUSTOM_CERTS" =~ ^[Yy]$ ]]; then echo "true"; else echo "false"; fi)
+  secretName: "relvy-custom-certs"
 EOF
 
 print_success "my-values.yaml created"
@@ -352,6 +378,15 @@ if kubectl get secret relvy-registry-secret >/dev/null 2>&1; then
 else
     print_error "Failed to create Docker registry secret"
     exit 1
+fi
+
+# Create custom certs secret if provided
+if [[ "$ENABLE_CUSTOM_CERTS" =~ ^[Yy]$ ]] && [[ -n "$CA_BUNDLE_PATH" ]]; then
+    print_status "Creating custom SSL certificates secret..."
+    kubectl delete secret relvy-custom-certs 2>/dev/null || true
+    kubectl create secret generic relvy-custom-certs \
+      --from-file=ca-bundle.crt="${CA_BUNDLE_PATH}"
+    print_success "Custom SSL certificates secret created"
 fi
 
 # Check if AWS Load Balancer Controller is installed

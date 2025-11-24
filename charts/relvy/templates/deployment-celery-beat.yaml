@@ -31,6 +31,24 @@ spec:
                 operator: In
                 values:
                 - amd64
+      {{- if .Values.customCerts.enabled }}
+      initContainers:
+      - name: merge-ca-certs
+        image: {{ include "relvy.image" . }}
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            echo "Merging custom CA certificates with system certificates"
+            cat /etc/ssl/certs/ca-certificates.crt /custom-certs/ca-bundle.crt > /merged-certs/ca-bundle.crt
+            chmod 644 /merged-certs/ca-bundle.crt
+            echo "Certificate bundle ready"
+        volumeMounts:
+        - name: merged-certs
+          mountPath: /merged-certs
+        - name: custom-certs
+          mountPath: /custom-certs
+          readOnly: true
+      {{- end }}
       containers:
       - name: celery-beat
         image: {{ include "relvy.image" . }}
@@ -103,6 +121,29 @@ spec:
               name: {{ .Values.secrets.github }}
               key: client_id
               optional: true
+        {{- if .Values.customCerts.enabled }}
+        - name: REQUESTS_CA_BUNDLE
+          value: /merged-certs/ca-bundle.crt
+        - name: SSL_CERT_FILE
+          value: /merged-certs/ca-bundle.crt
+        - name: CURL_CA_BUNDLE
+          value: /merged-certs/ca-bundle.crt
+        {{- end }}
         resources:
           {{- toYaml .Values.celeryBeat.resources | nindent 10 }}
+        {{- if .Values.customCerts.enabled }}
+        volumeMounts:
+        - name: merged-certs
+          mountPath: /merged-certs
+          readOnly: true
+        {{- end }}
+      {{- if .Values.customCerts.enabled }}
+      volumes:
+      - name: merged-certs
+        emptyDir: {}
+      - name: custom-certs
+        secret:
+          secretName: {{ .Values.customCerts.secretName }}
+          optional: false
+      {{- end }}
 {{- end }}
