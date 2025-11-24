@@ -124,3 +124,8 @@ persistence:
   enabled: true
   storageClass: ""
   size: 10Gi
+
+# Custom SSL Certificates (optional)
+customCerts:
+  enabled: false
+  secretName: ""  # Name of Kubernetes secret containing ca-bundle.crt
