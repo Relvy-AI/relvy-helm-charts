@@ -18,6 +18,9 @@ spec:
         {{- include "relvy.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: web
     spec:
+      {{- if .Values.config.serviceAccount.enabled }}
+      serviceAccountName: {{ include "relvy.serviceAccountName" . }}
+      {{- end }}
       {{- if .Values.global.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml .Values.global.imagePullSecrets | nindent 8 }}

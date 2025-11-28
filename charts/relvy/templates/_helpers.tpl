@@ -50,10 +50,10 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 Create the name of the service account to use
 */}}
 {{- define "relvy.serviceAccountName" -}}
-{{- if .Values.serviceAccount.create }}
-{{- default (include "relvy.fullname" .) .Values.serviceAccount.name }}
+{{- if .Values.config.serviceAccount.enabled }}
+{{- default (include "relvy.fullname" .) .Values.config.serviceAccount.name }}
 {{- else }}
-{{- default "default" .Values.serviceAccount.name }}
+default
 {{- end }}
 {{- end }}
 
