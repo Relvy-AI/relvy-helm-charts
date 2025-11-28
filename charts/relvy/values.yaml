@@ -118,6 +118,10 @@ secrets:
 config:
   serverHostname: ""
   environment: "onprem"
+  serviceAccount:
+    enabled: false
+    name: ""
+    annotations: {}  # IRSA annotation: eks.amazonaws.com/role-arn: arn:aws:iam::ACCOUNT_ID:role/ROLE_NAME
 
 # Persistence configuration
 persistence:
